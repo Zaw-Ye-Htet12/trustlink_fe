@@ -16,6 +16,15 @@ export interface User {
   updated_at: string;
 }
 
+export interface CustomerProfile {
+  id: number;
+  user_id: number;
+  location?: string;
+  bio?: string;
+  created_at: string;
+  user?: User;
+}
+
 export interface AuthResponse {
   user: User;
   access_token: string;
@@ -31,5 +40,5 @@ export interface RegisterData {
   password: string;
   username: string;
   phone?: string;
-  role: UserRole;
+  role: UserRole.AGENT | UserRole.CUSTOMER;
 }

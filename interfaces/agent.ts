@@ -1,3 +1,5 @@
+import { Review } from "./review";
+import { Service } from "./service";
 import { User } from "./user";
 
 export enum VerificationStatus {
@@ -5,6 +7,14 @@ export enum VerificationStatus {
   APPROVED = "approved",
   REJECTED = "rejected",
 }
+
+export enum DocumentType {
+  BUSINESS_LICENSE = "business_license",
+  ID_CARD = "id_card",
+  CERTIFICATE = "certificate",
+  OTHER = "other",
+}
+
 
 export interface AgentProfile {
   id: number;
@@ -18,6 +28,8 @@ export interface AgentProfile {
   follower_count: number;
   created_at: string;
   updated_at: string;
+  services?: Service[];
+  reviews?: Review[];
 }
 
 export interface UpdateAgentDto {
@@ -29,4 +41,16 @@ export interface UpdateAgentDto {
   username?: string;
   phone_no?: string;
   profile_photo_url?: string;
+  businessName?: string;
+}
+
+export interface VerificationDocument {
+  id: number;
+  agent_id: number;
+  agent: AgentProfile;
+  document_type: DocumentType;
+  document_url: string;
+  status: VerificationStatus;
+  admin_notes?: string;
+  created_at: string;
 }

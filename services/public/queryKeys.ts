@@ -1,0 +1,18 @@
+export const QUERY_KEYS = {
+  FEATURED_AGENTS: "featuredAgents",
+  FEATURED_SERVICES: "featuredServices",
+  TRENDING_SERVICES: "trendingServices",
+  PLATFORM_STATISTICS: "platformStatistics",
+  SEARCH_AGENTS: "searchAgents",
+  SEARCH_SERVICES: "searchServices",
+  ALL_SERVICES: "allServices",
+  SERVICE_BY_ID: "serviceById",
+  AGENT_BY_ID: "agentById",
+  CATEGORIES: "categories",
+  TAGS: "tags",
+  RELATED_SERVICES: "relatedServices",
+  SERVICE_REVIEWS: "serviceReviews",
+  AGENT_REVIEWS: "agentReviews",
+  TOP_AGENTS: "topAgents",
+  FILTER_AGENTS: "filterAgents",
+};

@@ -4,8 +4,21 @@ import {
   UseQueryOptions,
   UseMutationOptions,
   useQueryClient,
+  QueryClient,
 } from "@tanstack/react-query";
-import axiosApi from "@/lib/axios";
+import axiosApi from "./axios";
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnMount: true,
+      staleTime: 30000,
+      gcTime: 60000,
+      refetchOnWindowFocus: true,
+      retry: false,
+    },
+  },
+});
 
 type RecordType = Record<string, string | number | boolean | undefined>;
 
@@ -14,7 +27,6 @@ interface UseReadParameters<TData, TError> {
   url: string;
   params?: RecordType;
   options?: UseQueryOptions<TData, TError>;
-  isAdminApi?: boolean;
 }
 
 export const useRead = <TData = unknown, TError = unknown>({
@@ -62,7 +74,10 @@ export const useWrite = <TData = unknown, TError = unknown>({
   const queryClient = useQueryClient();
 
   const mutationFn = async (variables: unknown) => {
-    const config = { params, headers };
+    const config = {
+      params,
+      headers,
+    };
     let response;
 
     switch (method) {
@@ -101,7 +116,25 @@ export const useWrite = <TData = unknown, TError = unknown>({
     mutationFn,
     ...options,
     onSuccess: (data, variables, context) => {
-      options?.onSuccess?.(data, variables, context);
+      // call user-provided onSuccess handler safely (avoid TS/linter complaints
+      // about calling possibly-undefined values and preserve original behavior)
+      const userOnSuccess = options?.onSuccess as
+        | UseMutationOptions<TData, TError, unknown>["onSuccess"]
+        | undefined;
+      if (userOnSuccess) {
+        try {
+          // call as a generic function to avoid strict signature mismatches
+          (userOnSuccess as unknown as (...args: unknown[]) => unknown)(
+            data,
+            variables,
+            context
+          );
+        } catch (err) {
+          // don't block the mutation lifecycle if user handler throws
+          console.error("Error in user onSuccess handler:", err);
+        }
+      }
+
       if (queryKey) {
         onInvalidateSuccess();
       }

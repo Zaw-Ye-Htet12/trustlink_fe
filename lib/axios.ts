@@ -1,17 +1,14 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
-  timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
+const axiosApi = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_BASE_API_URL || "http://localhost:3001",
+  timeout: 60000,
+  withCredentials: true,
 });
 
-// Request interceptor - Add auth token
-api.interceptors.request.use(
+axiosApi.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -20,16 +17,30 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor - Handle errors
-api.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("access_token");
-      window.location.href = "/login";
+axiosApi.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Check for 401 Unauthorized and token refresh conditions
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !originalRequest._retry &&
+      error.response.data === "Unauthorized"
+    ) {
+      originalRequest._retry = true;
+
+      // Ensure the token is still present before attempting refresh
+      const token = localStorage.getItem("token");
+      if (!token) {
+        // Prevent refresh if the token is already removed (e.g., during logout)
+        return Promise.reject(error);
+      }
     }
+
     return Promise.reject(error);
   }
 );
 
-export default api;
+export default axiosApi;

@@ -1,24 +1,16 @@
+import { AgentProfile } from "./agent";
+import { Service } from "./service";
+import { CustomerProfile } from "./user";
+
 export interface Review {
   id: number;
   rating: number;
   title?: string;
   comment?: string;
   created_at: string;
-  customer?: {
-    id: number;
-    user: {
-      id: number;
-      username: string;
-      profile_photo_url?: string;
-    };
-  };
-  agent?: {
-    id: number;
-  };
-  service?: {
-    id: number;
-    title: string;
-  };
+  customer?: CustomerProfile;
+  agent?: AgentProfile;
+  service?: Service;
 }
 
 export interface CreateReviewDto {

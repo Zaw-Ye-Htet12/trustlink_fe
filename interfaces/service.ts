@@ -1,3 +1,5 @@
+import { AgentProfile } from "./agent";
+
 export enum PricingType {
   FIXED = "fixed",
   STARTING_FROM = "starting_from",
@@ -13,8 +15,10 @@ export enum LocationType {
 
 export interface Service {
   id: number;
+  agent: AgentProfile;
   agent_id: number;
   category_id?: number;
+  category?: Category;
   title: string;
   description: string;
   pricing_type: PricingType;
@@ -26,9 +30,12 @@ export interface Service {
   total_reviews: number;
   created_at: string;
   updated_at: string;
-  category?: Category;
   tags?: Tag[];
   images?: ServiceImage[];
+  // For UI display
+  rating?: number;
+  reviewCount?: number;
+  location?: string;
 }
 
 export interface Category {
@@ -62,4 +69,14 @@ export interface CreateServiceDto {
   currency?: string;
   location_type: LocationType;
   service_area?: string;
+  tags?: number[];
+}
+
+export interface ServiceSearchFilters {
+  category?: number;
+  search?: string;
+  location?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  rating?: number;
 }
