@@ -1,3 +1,4 @@
+// components/common/NavBar.tsx
 "use client";
 
 import Link from "next/link";
@@ -8,6 +9,8 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
+import MobileProfileSection from "./MobileProfileSection";
+import DesktopProfileDropdown from "./DesktopProfileDropdown";
 
 const navigationItems = [
   { title: "Home", href: "/" },
@@ -27,6 +30,10 @@ export function NavBar() {
     clearAuth();
     toast.success("You have been logged out successfully.");
     router.push("/");
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -76,19 +83,7 @@ export function NavBar() {
         {/* Auth Buttons - Desktop */}
         <div className="hidden md:flex items-center space-x-3">
           {user ? (
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                  {user.username ? user.username.charAt(0).toUpperCase() : "U"}
-                </div>
-                <span className="text-sm font-medium">
-                  {user.username ?? user.email}
-                </span>
-              </div>
-              <Button variant="ghost" onClick={logout}>
-                Logout
-              </Button>
-            </div>
+            <DesktopProfileDropdown user={user} onLogout={logout} />
           ) : (
             <>
               <Button
@@ -139,7 +134,7 @@ export function NavBar() {
                           ? "text-primary bg-primary/10 font-semibold border-l-4 border-primary"
                           : "text-muted-foreground"
                       )}
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      onClick={closeMobileMenu}
                     >
                       {item.title}
                     </Link>
@@ -149,36 +144,13 @@ export function NavBar() {
             </nav>
 
             {/* Mobile Auth Buttons */}
-            <div className="flex flex-col space-y-3 pt-4 border-t border-gray-200/50 mt-4">
+            <div className="flex flex-col space-y-3 pt-4">
               {user ? (
-                <div className="px-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                        {user.username
-                          ? user.username.charAt(0).toUpperCase()
-                          : "U"}
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium">
-                          {user.username ?? user.email}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {user.role}
-                        </div>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        logout();
-                      }}
-                    >
-                      Logout
-                    </Button>
-                  </div>
-                </div>
+                <MobileProfileSection
+                  user={user}
+                  onLogout={logout}
+                  onCloseMenu={closeMobileMenu}
+                />
               ) : (
                 <>
                   <Button
@@ -186,10 +158,7 @@ export function NavBar() {
                     asChild
                     className="justify-start text-muted-foreground hover:text-foreground h-12 text-base"
                   >
-                    <Link
-                      href="/auth/login"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
+                    <Link href="/auth/login" onClick={closeMobileMenu}>
                       Login
                     </Link>
                   </Button>
@@ -197,10 +166,7 @@ export function NavBar() {
                     asChild
                     className="bg-gradient-to-br from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 text-white justify-start h-12 text-base"
                   >
-                    <Link
-                      href="/auth/register"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
+                    <Link href="/auth/register" onClick={closeMobileMenu}>
                       Sign Up
                     </Link>
                   </Button>

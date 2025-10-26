@@ -20,7 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Home, LogIn, UserPlus } from "lucide-react";
 import { useLogin } from "@/hooks/useLogin";
 
 export default function LoginPage() {
@@ -131,7 +131,7 @@ export default function LoginPage() {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                {`Don't have an account?`} {" "}
+                {`Don't have an account?`}{" "}
                 <Link
                   href="/auth/register"
                   className="text-blue-600 hover:text-blue-700 font-medium"
@@ -139,6 +139,16 @@ export default function LoginPage() {
                   Sign up now
                 </Link>
               </p>
+            </div>
+
+            <div className="mt-4 text-center">
+              <Link
+                href="/"
+                className="inline-flex items-center text-sm text-gray-500 hover:text-blue-600 transition-colors"
+              >
+                <Home className="w-4 h-4 mr-1" />
+                Back to Home
+              </Link>
             </div>
 
             <div className="mt-6 pt-6 border-t">

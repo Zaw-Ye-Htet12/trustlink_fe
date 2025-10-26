@@ -20,7 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Eye, EyeOff, UserPlus, Users, Briefcase } from "lucide-react";
+import { Eye, EyeOff, UserPlus, Users, Briefcase, Home } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
@@ -239,6 +239,16 @@ export default function RegisterPage() {
                   Sign in here
                 </Link>
               </p>
+            </div>
+
+            <div className="mt-4 text-center">
+              <Link
+                href="/"
+                className="inline-flex items-center text-sm text-gray-500 hover:text-blue-600 transition-colors"
+              >
+                <Home className="w-4 h-4 mr-1" />
+                Back to Home
+              </Link>
             </div>
           </CardContent>
         </Card>

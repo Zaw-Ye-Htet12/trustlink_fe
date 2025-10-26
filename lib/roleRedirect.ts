@@ -5,7 +5,7 @@ export const getRedirectPath = (role: UserRole): string => {
     case "admin":
       return "/admin/dashboard";
     case "agent":
-      return "/agents/profile";
+      return "/agent/profile";
     case "customer":
       return "/";
     default:

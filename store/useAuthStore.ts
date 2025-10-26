@@ -4,7 +4,7 @@ import { create } from "zustand";
 
 export type UserRole = "admin" | "agent" | "customer";
 
-interface AuthUser {
+export interface AuthUser {
   id: number;
   email: string;
   username: string;

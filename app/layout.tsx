@@ -29,15 +29,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ReactQueryProvider>
           <div className="min-h-screen flex flex-col">
-            <NavBar />
             <main className="flex-1">{children}</main>
-            <Footer />
             <Toaster />
           </div>
         </ReactQueryProvider>
