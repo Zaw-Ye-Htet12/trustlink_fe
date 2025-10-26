@@ -42,3 +42,15 @@ export interface RegisterData {
   phone?: string;
   role: UserRole.AGENT | UserRole.CUSTOMER;
 }
+
+export interface UpdateCustomerData {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone_no?: string;
+  address?: string;
+  location?: string;
+  bio?: string;
+  username?: string;
+  profile_photo_url?: string;
+}

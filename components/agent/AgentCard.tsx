@@ -17,11 +17,15 @@ import {
   Sparkles,
   Phone,
   Calendar,
+  Building,
+  Target,
+  Heart,
 } from "lucide-react";
 import { AgentProfile } from "@/interfaces/agent";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
+import { useSavedStore } from "@/store/useSavedStore";
 
 interface AgentCardProps {
   agent: AgentProfile;
@@ -36,10 +40,12 @@ export function AgentCard({ agent, className }: AgentCardProps) {
     ? agent.reviews.reduce((sum, review) => sum + review.rating, 0) /
       agent.reviews.length
     : 0;
+  const { isAgentSaved, toggleSaveAgent } = useSavedStore();
+  const saved = isAgentSaved(agent.id);
 
   // Calculate response rate (mock data for now)
-  const responseRate = 95; // This could come from agent stats
-  const completionRate = 98; // This could come from agent stats
+  const responseRate = 95;
+  const completionRate = 98;
 
   // Check if agent is active recently (within last 7 days)
   const isActiveRecently = () => {
@@ -54,7 +60,7 @@ export function AgentCard({ agent, className }: AgentCardProps) {
   const getVerificationBadge = () => {
     if (isVerified) {
       return (
-        <Badge className="bg-green-500 text-white border-0 shadow-lg text-xs">
+        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 text-xs font-medium">
           <CheckCircle className="w-3 h-3 mr-1" />
           Verified
         </Badge>
@@ -63,7 +69,7 @@ export function AgentCard({ agent, className }: AgentCardProps) {
     return (
       <Badge
         variant="outline"
-        className="text-orange-600 border-orange-300 bg-orange-50 text-xs"
+        className="text-amber-600 border-amber-300 bg-amber-50 text-xs"
       >
         Pending Verification
       </Badge>
@@ -81,17 +87,17 @@ export function AgentCard({ agent, className }: AgentCardProps) {
   return (
     <Card
       className={cn(
-        "group hover:shadow-xl transition-all duration-300 border border-gray-200/70 overflow-hidden bg-white",
-        "hover:scale-[1.02] active:scale-[1.01] transform-gpu cursor-pointer",
+        "group hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden bg-white",
+        "hover:border-gray-300 cursor-pointer",
         className
       )}
     >
-      {/* Header with gradient background */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white relative overflow-hidden">
-        {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-16 translate-x-16"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full translate-y-12 -translate-x-12"></div>
+      {/* Header with subtle background */}
+      <div className="bg-gradient-to-r from-slate-50 to-gray-50 p-6 border-b border-gray-100 relative overflow-hidden">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-[0.02]">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gray-400 rounded-full -translate-y-16 translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gray-400 rounded-full translate-y-12 -translate-x-12"></div>
         </div>
 
         <div className="relative z-10">
@@ -99,7 +105,7 @@ export function AgentCard({ agent, className }: AgentCardProps) {
             <div className="flex items-center gap-3">
               {/* Agent Avatar */}
               <div className="relative">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center border-2 border-white/30 backdrop-blur-sm">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-sm">
                   {agent.user.profile_photo_url ? (
                     <Image
                       src={agent.user.profile_photo_url}
@@ -109,29 +115,31 @@ export function AgentCard({ agent, className }: AgentCardProps) {
                       className="rounded-full object-cover"
                     />
                   ) : (
-                    <span className="text-white font-bold text-xl">
-                      {agent.user.username?.[0]?.toUpperCase() ?? "U"}
-                    </span>
+                    <div className="w-16 h-16 bg-gradient-to-br from-slate-500 to-gray-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-semibold text-lg">
+                        {agent.user.username?.[0]?.toUpperCase() ?? "U"}
+                      </span>
+                    </div>
                   )}
                 </div>
                 {isActiveRecently() && (
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white"></div>
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-400 rounded-full border-2 border-white shadow-sm"></div>
                 )}
               </div>
 
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-bold text-lg text-white">
+                  <h3 className="font-semibold text-gray-900 text-lg">
                     {agent.user.username}
                   </h3>
-                  {isPro && <Sparkles className="w-4 h-4 text-yellow-300" />}
+                  {isPro && <Sparkles className="w-4 h-4 text-amber-500" />}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {getVerificationBadge()}
                   {getExperienceLevel() && (
                     <Badge
                       variant="outline"
-                      className="bg-white/20 text-white border-white/30 text-xs"
+                      className="bg-slate-100 text-slate-700 border-slate-300 text-xs"
                     >
                       {getExperienceLevel()}
                     </Badge>
@@ -142,12 +150,14 @@ export function AgentCard({ agent, className }: AgentCardProps) {
 
             {/* Quick Stats */}
             <div className="text-right">
-              <div className="flex items-center gap-1 text-white/90 text-sm mb-1">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span className="font-bold">{averageRating.toFixed(1)}</span>
-                <span className="text-white/70">({agent.total_reviews})</span>
+              <div className="flex items-center gap-1 text-gray-700 text-sm mb-1 justify-end">
+                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                <span className="font-semibold">
+                  {averageRating.toFixed(1)}
+                </span>
+                <span className="text-gray-500">({agent.total_reviews})</span>
               </div>
-              <div className="text-xs text-white/70">
+              <div className="text-xs text-gray-500">
                 {totalServices} services
               </div>
             </div>
@@ -171,7 +181,7 @@ export function AgentCard({ agent, className }: AgentCardProps) {
                 <Badge
                   key={service.id}
                   variant="outline"
-                  className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                  className="text-xs bg-blue-50 text-blue-700 border-blue-200 font-medium"
                 >
                   <Briefcase className="w-3 h-3 mr-1" />
                   {service.category?.name || "Service"}
@@ -193,8 +203,8 @@ export function AgentCard({ agent, className }: AgentCardProps) {
         <div className="grid grid-cols-2 gap-3 text-sm">
           {/* Experience */}
           {agent.years_of_experience && (
-            <div className="flex items-center gap-2 p-2 bg-orange-50 rounded-lg">
-              <Award className="w-4 h-4 text-orange-600" />
+            <div className="flex items-center gap-2 p-2 bg-amber-50 rounded-lg border border-amber-100">
+              <Award className="w-4 h-4 text-amber-600" />
               <div>
                 <div className="font-semibold text-gray-900">
                   {agent.years_of_experience}+ years
@@ -205,7 +215,7 @@ export function AgentCard({ agent, className }: AgentCardProps) {
           )}
 
           {/* Followers */}
-          <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+          <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
             <Users className="w-4 h-4 text-blue-600" />
             <div>
               <div className="font-semibold text-gray-900">
@@ -216,8 +226,8 @@ export function AgentCard({ agent, className }: AgentCardProps) {
           </div>
 
           {/* Response Rate */}
-          <div className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
-            <MessageCircle className="w-4 h-4 text-green-600" />
+          <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg border border-emerald-100">
+            <MessageCircle className="w-4 h-4 text-emerald-600" />
             <div>
               <div className="font-semibold text-gray-900">{responseRate}%</div>
               <div className="text-xs text-gray-500">Response Rate</div>
@@ -225,8 +235,8 @@ export function AgentCard({ agent, className }: AgentCardProps) {
           </div>
 
           {/* Completion Rate */}
-          <div className="flex items-center gap-2 p-2 bg-purple-50 rounded-lg">
-            <ThumbsUp className="w-4 h-4 text-purple-600" />
+          <div className="flex items-center gap-2 p-2 bg-violet-50 rounded-lg border border-violet-100">
+            <ThumbsUp className="w-4 h-4 text-violet-600" />
             <div>
               <div className="font-semibold text-gray-900">
                 {completionRate}%
@@ -247,7 +257,7 @@ export function AgentCard({ agent, className }: AgentCardProps) {
 
           {agent.service_area && (
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Eye className="w-4 h-4 text-gray-400" />
+              <Target className="w-4 h-4 text-gray-400" />
               <span>Serves: {agent.service_area}</span>
             </div>
           )}
@@ -269,7 +279,7 @@ export function AgentCard({ agent, className }: AgentCardProps) {
           {isActiveRecently() && (
             <Badge
               variant="outline"
-              className="bg-green-50 text-green-700 border-green-200 text-xs"
+              className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs"
             >
               Active recently
             </Badge>
@@ -280,7 +290,7 @@ export function AgentCard({ agent, className }: AgentCardProps) {
         <div className="flex gap-2 pt-3">
           <Button
             variant="outline"
-            className="flex-1 border-2 hover:border-blue-500 hover:bg-blue-50 transition-all duration-200"
+            className="flex-1 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 text-gray-700"
             size="sm"
             asChild
           >
@@ -290,7 +300,20 @@ export function AgentCard({ agent, className }: AgentCardProps) {
             </Link>
           </Button>
           <Button
-            className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200 border-0"
+            onClick={() => toggleSaveAgent(agent.id)}
+            variant={saved ? "default" : "outline"}
+            className={`flex-1 ${
+              saved
+                ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
+                : "border-gray-300 hover:border-gray-400 text-gray-700"
+            } transition-all duration-200`}
+            size="sm"
+          >
+            <Heart className={`w-4 h-4 mr-2 ${saved ? "fill-current" : ""}`} />
+            {saved ? "Saved" : "Save"}
+          </Button>
+          <Button
+            className="flex-1 bg-gray-900 hover:bg-gray-800 text-white shadow-sm hover:shadow transition-all duration-200 border-0"
             size="sm"
           >
             <MessageCircle className="w-4 h-4 mr-2" />
@@ -314,7 +337,7 @@ export function AgentCard({ agent, className }: AgentCardProps) {
                   <span className="text-gray-700 line-clamp-1">
                     {service.title}
                   </span>
-                  <span className="font-semibold text-blue-600">
+                  <span className="font-semibold text-gray-900">
                     {service.price
                       ? `${service.currency} ${service.price}`
                       : "Custom"}

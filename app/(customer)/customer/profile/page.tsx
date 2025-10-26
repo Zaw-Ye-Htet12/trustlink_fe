@@ -1,5 +1,10 @@
 // app/customer/profile/page.tsx
 "use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -7,108 +12,83 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
-  User,
-  Shield,
-  Bell,
-  CreditCard,
-  MapPin,
-  Phone,
-  Mail,
+  Camera,
   Calendar,
-  Star,
   FileText,
   Heart,
-  Camera,
+  Loader2,
+  Shield,
+  Star,
+  User,
+  EyeOff,
+  Eye,
 } from "lucide-react";
-import { useState } from "react";
-import { Switch } from "@/components/ui/switch";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { useCustomerProfileForm } from "@/hooks/useCustomerProfile";
+import { useChangePassword } from "@/hooks/useChangePassword";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("profile");
-  const [notifications, setNotifications] = useState({
-    email: true,
-    sms: false,
-    reminders: true,
-    promotions: false,
-    updates: true,
-  });
 
-  const toggleNotification = (key: keyof typeof notifications) => {
-    setNotifications((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+  const {
+    profileForm: form,
+    onProfileSubmit,
+    isLoading,
+    isUpdating,
+  } = useCustomerProfileForm();
+
+  const {
+    form: passwordForm,
+    isChangingPassword,
+    onSubmit: handlePasswordSubmit,
+    showConfirmPassword,
+    showCurrentPassword,
+    showNewPassword,
+    toggleConfirmPasswordVisibility,
+    toggleCurrentPasswordVisibility,
+    toggleNewPasswordVisibility,
+  } = useChangePassword();
+
+  // Remove debug logs in production
+  const isProfileFormValid = form.formState.isValid;
+  const isProfileFormDirty = form.formState.isDirty;
+
+  const handleFormSubmit = (data: any) => {
+    onProfileSubmit(data);
   };
 
-  // Mock user data
-  const userData = {
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Main Street, Apt 4B, New York, NY 10001",
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+        <span className="ml-2 text-gray-600">Loading profile...</span>
+      </div>
+    );
+  }
+
+  const userStats = {
+    firstName: form.getValues("firstName") || "John",
+    lastName: form.getValues("lastName") || "Doe",
+    email: form.getValues("email") || "john.doe@example.com",
     joinDate: "January 2023",
-    memberSince: "1 year",
     totalBookings: 12,
     totalReviews: 8,
     favoriteServices: 5,
   };
 
-  const paymentMethods = [
-    {
-      id: 1,
-      type: "Visa",
-      last4: "4242",
-      expiry: "12/2025",
-      isDefault: true,
-    },
-    {
-      id: 2,
-      type: "MasterCard",
-      last4: "8888",
-      expiry: "08/2024",
-      isDefault: false,
-    },
-  ];
-
-  const transactions = [
-    {
-      id: 1,
-      service: "Home Cleaning",
-      agent: "Sarah Johnson",
-      date: "Jan 12, 2024",
-      amount: "$85.00",
-      status: "completed",
-    },
-    {
-      id: 2,
-      service: "Plumbing Repair",
-      agent: "Mike Chen",
-      date: "Jan 10, 2024",
-      amount: "$120.00",
-      status: "completed",
-    },
-    {
-      id: 3,
-      service: "Electrical Wiring",
-      agent: "David Brown",
-      date: "Jan 8, 2024",
-      amount: "$150.00",
-      status: "completed",
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50/30 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="p-3 rounded-full bg-blue-50 text-blue-500">
@@ -119,20 +99,34 @@ export default function ProfilePage() {
             </h1>
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Manage your account information, security settings, and preferences
+            Manage your account and personal details
           </p>
         </div>
 
+        {/* Show validation banner only for profile tab */}
+        {activeTab === "profile" &&
+          !isProfileFormValid &&
+          isProfileFormDirty && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="text-red-600 text-sm">
+                  <strong>Form has validation errors:</strong> Please fix the
+                  errors below before submitting.
+                </div>
+              </div>
+            </div>
+          )}
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar - User Summary */}
+          {/* Sidebar */}
           <div className="lg:col-span-1">
             <Card className="sticky top-8">
               <CardContent className="p-6">
-                {/* User Avatar */}
                 <div className="text-center mb-6">
                   <div className="relative inline-block">
                     <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-2xl mx-auto mb-3">
-                      JD
+                      {userStats.firstName.charAt(0)}
+                      {userStats.lastName.charAt(0)}
                     </div>
                     <Button
                       variant="secondary"
@@ -143,438 +137,414 @@ export default function ProfilePage() {
                     </Button>
                   </div>
                   <h2 className="text-xl font-semibold text-gray-900">
-                    {userData.firstName} {userData.lastName}
+                    {userStats.firstName} {userStats.lastName}
                   </h2>
-                  <p className="text-gray-600 text-sm">{userData.email}</p>
+                  <p className="text-gray-600 text-sm">{userStats.email}</p>
                   <Badge variant="secondary" className="mt-2">
                     Customer
                   </Badge>
                 </div>
 
-                {/* User Stats */}
                 <div className="space-y-4 border-t pt-6">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Calendar className="h-4 w-4" />
-                      <span>Member since</span>
-                    </div>
-                    <span className="font-medium">{userData.joinDate}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <FileText className="h-4 w-4" />
-                      <span>Total bookings</span>
-                    </div>
-                    <span className="font-medium">
-                      {userData.totalBookings}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Star className="h-4 w-4" />
-                      <span>Reviews written</span>
-                    </div>
-                    <span className="font-medium">{userData.totalReviews}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Heart className="h-4 w-4" />
-                      <span>Favorites</span>
-                    </div>
-                    <span className="font-medium">
-                      {userData.favoriteServices}
-                    </span>
-                  </div>
+                  <Stat
+                    icon={Calendar}
+                    label="Member since"
+                    value={userStats.joinDate}
+                  />
+                  <Stat
+                    icon={FileText}
+                    label="Total bookings"
+                    value={userStats.totalBookings}
+                  />
+                  <Stat
+                    icon={Star}
+                    label="Reviews written"
+                    value={userStats.totalReviews}
+                  />
+                  <Stat
+                    icon={Heart}
+                    label="Favorites"
+                    value={userStats.favoriteServices}
+                  />
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Main Content */}
+          {/* Main */}
           <div className="lg:col-span-3">
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="space-y-6"
-            >
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger
-                  value="profile"
-                  className="flex items-center gap-2"
-                >
-                  <User className="h-4 w-4" />
-                  Profile
-                </TabsTrigger>
-                <TabsTrigger
-                  value="security"
-                  className="flex items-center gap-2"
-                >
-                  <Shield className="h-4 w-4" />
-                  Security
-                </TabsTrigger>
-                <TabsTrigger
-                  value="notifications"
-                  className="flex items-center gap-2"
-                >
-                  <Bell className="h-4 w-4" />
-                  Notifications
-                </TabsTrigger>
-                <TabsTrigger
-                  value="billing"
-                  className="flex items-center gap-2"
-                >
-                  <CreditCard className="h-4 w-4" />
-                  Billing
-                </TabsTrigger>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="profile">Profile</TabsTrigger>
+                <TabsTrigger value="security">Security</TabsTrigger>
               </TabsList>
 
-              {/* Profile Tab */}
-              <TabsContent value="profile" className="space-y-6">
+              {/* Profile Form */}
+              <TabsContent value="profile">
                 <Card>
                   <CardHeader>
                     <CardTitle>Personal Information</CardTitle>
                     <CardDescription>
-                      Update your personal details and contact information
+                      Update your personal details
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                        <Label htmlFor="firstName">First Name</Label>
-                        <Input
-                          id="firstName"
-                          defaultValue={userData.firstName}
-                        />
-                      </div>
-                      <div className="space-y-3">
-                        <Label htmlFor="lastName">Last Name</Label>
-                        <Input id="lastName" defaultValue={userData.lastName} />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                        <Label
-                          htmlFor="email"
-                          className="flex items-center gap-2"
-                        >
-                          <Mail className="h-4 w-4" />
-                          Email Address
-                        </Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          defaultValue={userData.email}
-                        />
-                      </div>
-                      <div className="space-y-3">
-                        <Label
-                          htmlFor="phone"
-                          className="flex items-center gap-2"
-                        >
-                          <Phone className="h-4 w-4" />
-                          Phone Number
-                        </Label>
-                        <Input
-                          id="phone"
-                          type="tel"
-                          defaultValue={userData.phone}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="address"
-                        className="flex items-center gap-2"
+                  <CardContent>
+                    <Form {...form}>
+                      <form
+                        onSubmit={form.handleSubmit(handleFormSubmit)}
+                        className="space-y-6"
                       >
-                        <MapPin className="h-4 w-4" />
-                        Address
-                      </Label>
-                      <Textarea
-                        id="address"
-                        placeholder="Enter your address"
-                        defaultValue={userData.address}
-                        className="min-h-[100px]"
-                      />
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-4 border-t">
-                      <Button variant="outline">Cancel</Button>
-                      <Button>Save Changes</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Security Tab */}
-              <TabsContent value="security" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Security Settings</CardTitle>
-                    <CardDescription>
-                      Manage your password and account security
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="space-y-4">
-                      <h4 className="font-medium text-gray-900">
-                        Change Password
-                      </h4>
-                      <div className="grid grid-cols-1 gap-4">
-                        <div className="space-y-3">
-                          <Label htmlFor="currentPassword">
-                            Current Password
-                          </Label>
-                          <Input
-                            id="currentPassword"
-                            type="password"
-                            placeholder="Enter current password"
-                          />
-                        </div>
-                        <div className="space-y-3">
-                          <Label htmlFor="newPassword">New Password</Label>
-                          <Input
-                            id="newPassword"
-                            type="password"
-                            placeholder="Enter new password"
-                          />
-                        </div>
-                        <div className="space-y-3">
-                          <Label htmlFor="confirmPassword">
-                            Confirm New Password
-                          </Label>
-                          <Input
-                            id="confirmPassword"
-                            type="password"
-                            placeholder="Confirm new password"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-4 border-t">
-                      <Button variant="outline">Cancel</Button>
-                      <Button>Update Password</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Login Activity</CardTitle>
-                    <CardDescription>
-                      Recent login activity on your account
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 rounded-lg border">
-                        <div>
-                          <p className="font-medium">New York, USA</p>
-                          <p className="text-sm text-gray-600">
-                            Chrome on Windows • Just now
-                          </p>
-                        </div>
-                        <Badge variant="default">Current</Badge>
-                      </div>
-                      <div className="flex items-center justify-between p-3 rounded-lg border">
-                        <div>
-                          <p className="font-medium">New York, USA</p>
-                          <p className="text-sm text-gray-600">
-                            Safari on iPhone • 2 hours ago
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Notifications Tab */}
-              <TabsContent value="notifications" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Notification Preferences</CardTitle>
-                    <CardDescription>
-                      Choose how you want to receive notifications
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between p-4 rounded-lg border">
-                        <div className="space-y-1">
-                          <p className="font-medium">Email Notifications</p>
-                          <p className="text-sm text-gray-600">
-                            Receive updates and important information via email
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notifications.email}
-                          onCheckedChange={() => toggleNotification("email")}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 rounded-lg border">
-                        <div className="space-y-1">
-                          <p className="font-medium">SMS Notifications</p>
-                          <p className="text-sm text-gray-600">
-                            Receive text message alerts and reminders
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notifications.sms}
-                          onCheckedChange={() => toggleNotification("sms")}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 rounded-lg border">
-                        <div className="space-y-1">
-                          <p className="font-medium">Booking Reminders</p>
-                          <p className="text-sm text-gray-600">
-                            Get reminded before your appointments
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notifications.reminders}
-                          onCheckedChange={() =>
-                            toggleNotification("reminders")
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 rounded-lg border">
-                        <div className="space-y-1">
-                          <p className="font-medium">Promotional Emails</p>
-                          <p className="text-sm text-gray-600">
-                            Receive special offers and updates
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notifications.promotions}
-                          onCheckedChange={() =>
-                            toggleNotification("promotions")
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 rounded-lg border">
-                        <div className="space-y-1">
-                          <p className="font-medium">Service Updates</p>
-                          <p className="text-sm text-gray-600">
-                            Get notified about new services and features
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notifications.updates}
-                          onCheckedChange={() => toggleNotification("updates")}
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Billing Tab */}
-              <TabsContent value="billing" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Payment Methods</CardTitle>
-                    <CardDescription>
-                      Manage your payment methods and billing preferences
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="space-y-4">
-                      {paymentMethods.map((method) => (
-                        <div
-                          key={method.id}
-                          className="flex items-center justify-between p-4 rounded-lg border"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-8 bg-blue-500 rounded flex items-center justify-center text-white text-sm font-bold">
-                              {method.type === "Visa" ? "VISA" : "MC"}
-                            </div>
-                            <div>
-                              <p className="font-medium">
-                                {method.type} ending in {method.last4}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                Expires {method.expiry}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            {method.isDefault && (
-                              <Badge variant="default">Default</Badge>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <FormField
+                            control={form.control}
+                            name="firstName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>First Name *</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder="John"
+                                    disabled={isUpdating}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
                             )}
-                            <Button variant="outline" size="sm">
-                              Edit
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              Remove
-                            </Button>
-                          </div>
+                          />
+                          <FormField
+                            control={form.control}
+                            name="lastName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Last Name *</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder="Doe"
+                                    disabled={isUpdating}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         </div>
-                      ))}
-                    </div>
 
-                    <Button variant="outline" className="w-full">
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Add New Payment Method
-                    </Button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email *</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="email"
+                                    {...field}
+                                    placeholder="john@example.com"
+                                    disabled={isUpdating}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="phone_no"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Phone Number</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="tel"
+                                    {...field}
+                                    placeholder="+1 (555) 123-4567"
+                                    disabled={isUpdating}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name="address"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Address *</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  {...field}
+                                  placeholder="123 Main Street, City, State, ZIP"
+                                  disabled={isUpdating}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="bio"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Bio</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  {...field}
+                                  placeholder="Tell us about yourself..."
+                                  disabled={isUpdating}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="profile_photo_url"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Profile Photo URL</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="https://example.com/photo.jpg"
+                                  disabled={isUpdating}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="flex justify-end gap-3 border-t pt-6">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => form.reset()}
+                            disabled={isUpdating}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="submit"
+                            disabled={isUpdating || !isProfileFormValid}
+                            className="min-w-[140px]"
+                          >
+                            {isUpdating ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                Saving...
+                              </>
+                            ) : (
+                              <>
+                                Save Changes
+                                {!isProfileFormValid && " (Fix Errors)"}
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
                   </CardContent>
                 </Card>
+              </TabsContent>
 
+              <TabsContent value="security">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Transaction History</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-5 w-5 text-blue-500" />
+                      <CardTitle>Security Settings</CardTitle>
+                    </div>
                     <CardDescription>
-                      Your recent service transactions and payments
+                      Change your password and manage security preferences
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {transactions.map((transaction) => (
-                        <div
-                          key={transaction.id}
-                          className="flex items-center justify-between p-4 rounded-lg border"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600">
-                              <FileText className="h-5 w-5" />
-                            </div>
-                            <div>
-                              <p className="font-medium">
-                                {transaction.service}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                with {transaction.agent} • {transaction.date}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-gray-900">
-                              {transaction.amount}
-                            </p>
-                            <Badge variant="secondary" className="text-xs">
-                              {transaction.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <Form {...passwordForm}>
+                      <form
+                        onSubmit={passwordForm.handleSubmit(
+                          handlePasswordSubmit
+                        )}
+                        className="space-y-6"
+                      >
+                        <FormField
+                          control={passwordForm.control}
+                          name="currentPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Current Password</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    type={
+                                      showCurrentPassword ? "text" : "password"
+                                    }
+                                    {...field}
+                                    placeholder="Enter your current password"
+                                    className="pr-10"
+                                    disabled={isChangingPassword}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                    onClick={toggleCurrentPasswordVisibility}
+                                    disabled={isChangingPassword}
+                                  >
+                                    {showCurrentPassword ? (
+                                      <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                      <Eye className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <Button variant="outline" className="w-full mt-4">
-                      View All Transactions
-                    </Button>
+                        <FormField
+                          control={passwordForm.control}
+                          name="newPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>New Password</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    type={showNewPassword ? "text" : "password"}
+                                    {...field}
+                                    placeholder="Enter your new password"
+                                    className="pr-10"
+                                    disabled={isChangingPassword}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                    onClick={toggleNewPasswordVisibility}
+                                    disabled={isChangingPassword}
+                                  >
+                                    {showNewPassword ? (
+                                      <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                      <Eye className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                              <div className="text-sm text-gray-500 mt-1">
+                                Password must be at least 8 characters and
+                                contain uppercase, lowercase, and number/special
+                                character.
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={passwordForm.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Confirm New Password</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    type={
+                                      showConfirmPassword ? "text" : "password"
+                                    }
+                                    {...field}
+                                    placeholder="Confirm your new password"
+                                    className="pr-10"
+                                    disabled={isChangingPassword}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                    onClick={toggleConfirmPasswordVisibility}
+                                    disabled={isChangingPassword}
+                                  >
+                                    {showConfirmPassword ? (
+                                      <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                      <Eye className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="flex justify-end border-t pt-6">
+                          <Button
+                            type="submit"
+                            disabled={isChangingPassword}
+                            className="min-w-[140px]"
+                          >
+                            {isChangingPassword ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                Changing...
+                              </>
+                            ) : (
+                              "Change Password"
+                            )}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+
+                    {/* Additional Security Features */}
+                    <div className="mt-8 pt-6 border-t">
+                      <h3 className="text-lg font-semibold mb-4">
+                        Additional Security
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-4 border rounded-lg">
+                          <div>
+                            <h4 className="font-medium">
+                              Two-Factor Authentication
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              Add an extra layer of security to your account
+                            </p>
+                          </div>
+                          <Button variant="outline" disabled>
+                            Coming Soon
+                          </Button>
+                        </div>
+
+                        <div className="flex items-center justify-between p-4 border rounded-lg">
+                          <div>
+                            <h4 className="font-medium">Login Activity</h4>
+                            <p className="text-sm text-gray-600">
+                              View your recent login history
+                            </p>
+                          </div>
+                          <Button variant="outline" disabled>
+                            Coming Soon
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -585,3 +555,21 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+const Stat = ({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string | number;
+}) => (
+  <div className="flex items-center justify-between text-sm">
+    <div className="flex items-center gap-2 text-gray-600">
+      <Icon className="h-4 w-4" />
+      <span>{label}</span>
+    </div>
+    <span className="font-medium">{value}</span>
+  </div>
+);

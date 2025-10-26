@@ -15,3 +15,10 @@ export const useAuthRegister = () => {
     method: "POST",
   });
 };
+
+export const useAuthChangePassword = () => {
+  return useWrite<Response<{message: string}>>({
+    url: "/auth/change-password",
+    method: "PATCH",
+  });
+}

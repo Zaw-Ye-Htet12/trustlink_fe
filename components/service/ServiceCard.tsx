@@ -14,11 +14,15 @@ import {
   Eye,
   ThumbsUp,
   Calendar,
+  Shield,
+  Building,
+  Heart,
 } from "lucide-react";
 import { Service } from "@/interfaces/service";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
+import { useSavedStore } from "@/store/useSavedStore";
 
 interface ServiceCardProps {
   service: Service;
@@ -32,6 +36,8 @@ export function ServiceCard({ service, className }: ServiceCardProps) {
     service.images?.find((img) => img.is_primary) || service.images?.[0];
   const serviceRating = service.rating || 0;
   const reviewCount = service.reviewCount || service.total_reviews || 0;
+  const { isServiceSaved, toggleSaveService } = useSavedStore();
+  const saved = isServiceSaved(service.id);
 
   // Calculate if service is new (less than 7 days old)
   const isNewService = () => {
@@ -68,25 +74,25 @@ export function ServiceCard({ service, className }: ServiceCardProps) {
   return (
     <Card
       className={cn(
-        "group hover:shadow-xl transition-all duration-300 border border-gray-200/70 overflow-hidden bg-white",
-        "hover:scale-[1.02] active:scale-[1.01] transform-gpu cursor-pointer",
+        "group hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden bg-white",
+        "hover:border-gray-300 cursor-pointer",
         className
       )}
     >
       {/* Header with image and badges */}
       <div className="relative">
         {/* Service Image */}
-        <div className="aspect-video relative bg-gradient-to-br from-blue-50 to-gray-100 overflow-hidden">
+        <div className="aspect-video relative bg-gradient-to-br from-slate-100 to-gray-100 overflow-hidden">
           {primaryImage ? (
             <Image
               src={primaryImage.image_url}
               alt={service.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="object-cover group-hover:scale-102 transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-              <Sparkles className="w-12 h-12 text-blue-300" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-gray-200">
+              <Building className="w-10 h-10 text-gray-400" />
             </div>
           )}
 
@@ -94,14 +100,14 @@ export function ServiceCard({ service, className }: ServiceCardProps) {
           <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
             <div className="flex flex-wrap gap-2">
               {isNewService() && (
-                <Badge className="bg-green-500 text-white border-0 shadow-lg text-xs">
+                <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 text-xs font-medium">
                   New
                 </Badge>
               )}
               {service.category && (
                 <Badge
                   variant="secondary"
-                  className="bg-white/90 backdrop-blur-sm text-gray-700 shadow-sm text-xs"
+                  className="bg-white/95 backdrop-blur-sm text-gray-700 border-gray-200 shadow-sm text-xs font-medium"
                 >
                   {service.category.name}
                 </Badge>
@@ -111,43 +117,50 @@ export function ServiceCard({ service, className }: ServiceCardProps) {
             {!service.is_active && (
               <Badge
                 variant="destructive"
-                className="bg-red-500/95 backdrop-blur-sm text-white text-xs"
+                className="bg-red-100 text-red-800 border-red-200 text-xs font-medium"
               >
                 Unavailable
               </Badge>
             )}
           </div>
+
+          {/* Verified badge overlay */}
+          {isVerified && (
+            <div className="absolute bottom-3 right-3">
+              <Badge className="bg-white/95 backdrop-blur-sm text-emerald-700 border-emerald-200 text-xs font-medium">
+                <Shield className="w-3 h-3 mr-1" />
+                Verified
+              </Badge>
+            </div>
+          )}
         </div>
       </div>
 
       <CardHeader className="pb-3 px-5 pt-4">
         <div className="space-y-3">
-          {/* Title and verification */}
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-bold text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors flex-1">
-              {service.title}
-            </h3>
-            {isVerified && (
-              <Badge
-                variant="outline"
-                className="bg-blue-50 text-blue-700 border-blue-200 text-xs whitespace-nowrap"
-              >
-                <CheckCircle className="w-3 h-3 mr-1" />
-                Verified
-              </Badge>
-            )}
-          </div>
+          {/* Title */}
+          <h3 className="font-semibold text-gray-900 leading-tight line-clamp-2 group-hover:text-gray-700 transition-colors">
+            {service.title}
+          </h3>
 
           {/* Agent info */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5">
-              <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xs font-medium text-white">
+              <div className="w-6 h-6 bg-gradient-to-br from-slate-600 to-gray-700 rounded-full flex items-center justify-center text-xs font-medium text-white">
                 {service.agent.user.username.charAt(0).toUpperCase()}
               </div>
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm text-gray-700 font-medium">
                 {service.agent.user.username}
               </span>
             </div>
+            {service.agent.years_of_experience && (
+              <Badge
+                variant="outline"
+                className="text-xs bg-amber-50 text-amber-700 border-amber-200"
+              >
+                {service.agent.years_of_experience}+ years
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -163,21 +176,13 @@ export function ServiceCard({ service, className }: ServiceCardProps) {
           {/* Rating */}
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-0.5">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
               <span className="font-semibold text-gray-900">
                 {serviceRating.toFixed(1)}
               </span>
             </div>
             <span className="text-gray-500">({reviewCount})</span>
           </div>
-
-          {/* Experience */}
-          {service.agent.years_of_experience && (
-            <div className="flex items-center gap-1 text-gray-500">
-              <Calendar className="w-4 h-4" />
-              <span>{service.agent.years_of_experience}+ years</span>
-            </div>
-          )}
 
           {/* Location type */}
           <div className="flex items-center gap-1 text-gray-500">
@@ -202,7 +207,7 @@ export function ServiceCard({ service, className }: ServiceCardProps) {
                 <Badge
                   key={tag.id}
                   variant="outline"
-                  className="text-xs bg-gray-50 text-gray-600 border-gray-200"
+                  className="text-xs bg-slate-50 text-slate-600 border-slate-200 font-medium"
                 >
                   <Tag className="w-3 h-3 mr-1" />
                   {tag.name}
@@ -211,7 +216,7 @@ export function ServiceCard({ service, className }: ServiceCardProps) {
               {service.tags.length > 3 && (
                 <Badge
                   variant="outline"
-                  className="text-xs bg-gray-50 text-gray-500 border-gray-200"
+                  className="text-xs bg-slate-50 text-slate-500 border-slate-200"
                 >
                   +{service.tags.length - 3} more
                 </Badge>
@@ -240,7 +245,7 @@ export function ServiceCard({ service, className }: ServiceCardProps) {
 
           {/* Service age */}
           {isNewService() && (
-            <div className="flex items-center gap-1 text-green-600">
+            <div className="flex items-center gap-1 text-emerald-600">
               <Clock className="w-3 h-3" />
               <span>Recently added</span>
             </div>
@@ -250,7 +255,7 @@ export function ServiceCard({ service, className }: ServiceCardProps) {
         {/* Price and CTA */}
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <div className="space-y-1">
-            <div className="font-bold text-xl text-gray-900">
+            <div className="font-bold text-lg text-gray-900">
               {formatPrice()}
             </div>
 
@@ -258,25 +263,40 @@ export function ServiceCard({ service, className }: ServiceCardProps) {
             <div className="flex items-center gap-2 text-xs">
               <div
                 className={`w-2 h-2 rounded-full ${
-                  service.is_active ? "bg-green-500" : "bg-red-500"
+                  service.is_active ? "bg-emerald-500" : "bg-red-500"
                 }`}
               />
               <span
                 className={
-                  service.is_active ? "text-green-600" : "text-red-600"
+                  service.is_active ? "text-emerald-600" : "text-red-600"
                 }
               >
                 {service.is_active ? "Available now" : "Currently unavailable"}
               </span>
             </div>
           </div>
-
+          <Button
+            onClick={() => toggleSaveService(service.id)}
+            variant={saved ? "default" : "outline"}
+            size="sm"
+            className={`${
+              saved
+                ? "bg-red-500 hover:bg-red-600 text-white"
+                : "border-gray-300 hover:border-gray-400 text-gray-700"
+            } transition-all duration-200`}
+          >
+            <Heart className={`w-4 h-4 mr-2 ${saved ? "fill-current" : ""}`} />
+            {saved ? "Saved" : "Save"}
+          </Button>
           <Button
             size="sm"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200 border-0 font-semibold"
+            className="bg-gray-900 hover:bg-gray-800 text-white shadow-sm hover:shadow transition-all duration-200 border-0 font-semibold"
             asChild
           >
-            <Link href={`/services/${service.id}`}>View Details</Link>
+            <Link href={`/services/${service.id}`}>
+              <Eye className="w-4 h-4 mr-2" />
+              View Details
+            </Link>
           </Button>
         </div>
 
