@@ -1,12 +1,8 @@
-// app/(auth)/register/page.tsx
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useRegister } from "@/hooks/useRegister";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,58 +20,18 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Eye, EyeOff, UserPlus, LogIn, Users, Briefcase } from "lucide-react";
+import { Eye, EyeOff, UserPlus, Users, Briefcase } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
-const registerSchema = z
-  .object({
-    username: z.string().min(2, "Username must be at least 2 characters"),
-    email: z.string().email("Please enter a valid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string(),
-    phone: z.string().min(10, "Please enter a valid phone number"),
-    role: z.enum(["customer", "agent"]),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
-type RegisterFormData = z.infer<typeof registerSchema>;
-
 export default function RegisterPage() {
-  const searchParams = useSearchParams();
-  const initialRole =
-    (searchParams.get("role") as "customer" | "agent") || "customer";
+  const {
+    onRegisterSubmit,
+    isRegisterLoading,
+    registerForm: form,
+  } = useRegister();
 
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const form = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      phone: "",
-      role: initialRole,
-    },
-  });
-
-  const onSubmit = async (data: RegisterFormData) => {
-    setIsLoading(true);
-    try {
-      // Handle registration logic
-      console.log(data);
-    } catch (error) {
-      console.error("Registration failed:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -108,7 +64,7 @@ export default function RegisterPage() {
           <CardContent>
             <Form {...form}>
               <form
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={form.handleSubmit(onRegisterSubmit)}
                 className="space-y-4"
               >
                 {/* Role Selection */}
@@ -132,7 +88,7 @@ export default function RegisterPage() {
                             />
                             <Label
                               htmlFor="customer"
-                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
                             >
                               <Users className="mb-3 h-6 w-6" />
                               Customer
@@ -149,7 +105,7 @@ export default function RegisterPage() {
                             />
                             <Label
                               htmlFor="agent"
-                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
                             >
                               <Briefcase className="mb-3 h-6 w-6" />
                               Agent
@@ -221,6 +177,7 @@ export default function RegisterPage() {
                   )}
                 />
 
+                {/* Password */}
                 <FormField
                   control={form.control}
                   name="password"
@@ -255,48 +212,12 @@ export default function RegisterPage() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirm Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            placeholder="Confirm your password"
-                            type={showConfirmPassword ? "text" : "password"}
-                            {...field}
-                            className="h-11 pr-10"
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() =>
-                              setShowConfirmPassword(!showConfirmPassword)
-                            }
-                          >
-                            {showConfirmPassword ? (
-                              <EyeOff className="h-4 w-4 text-gray-500" />
-                            ) : (
-                              <Eye className="h-4 w-4 text-gray-500" />
-                            )}
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <Button
                   type="submit"
                   className="w-full h-11 bg-gradient-to-br from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600"
-                  disabled={isLoading}
+                  disabled={isRegisterLoading}
                 >
-                  {isLoading ? (
+                  {isRegisterLoading ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   ) : (
                     <>

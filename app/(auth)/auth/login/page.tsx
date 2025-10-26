@@ -2,9 +2,6 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,37 +21,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
-
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+import { useLogin } from "@/hooks/useLogin";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const form = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    try {
-      // Handle login logic
-      console.log(data);
-    } catch (error) {
-      console.error("Login failed:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { loginForm: form, onLoginSubmit, isLoginLoading } = useLogin();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -85,7 +56,7 @@ export default function LoginPage() {
           <CardContent>
             <Form {...form}>
               <form
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={form.handleSubmit(onLoginSubmit)}
                 className="space-y-4"
               >
                 <FormField
@@ -144,9 +115,9 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   className="w-full h-11 bg-gradient-to-br from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600"
-                  disabled={isLoading}
+                  disabled={isLoginLoading}
                 >
-                  {isLoading ? (
+                  {isLoginLoading ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   ) : (
                     <>
@@ -160,7 +131,7 @@ export default function LoginPage() {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                {`Don't have an account?{" "}`}
+                {`Don't have an account?`} {" "}
                 <Link
                   href="/auth/register"
                   className="text-blue-600 hover:text-blue-700 font-medium"

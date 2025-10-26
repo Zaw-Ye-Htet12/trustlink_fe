@@ -11,6 +11,7 @@ export interface Review {
   customer?: CustomerProfile;
   agent?: AgentProfile;
   service?: Service;
+  updated_at: string;
 }
 
 export interface CreateReviewDto {

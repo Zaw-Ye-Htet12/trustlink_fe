@@ -42,13 +42,68 @@ export function useGetSearchAgents(params: {
   });
 }
 
-export function useGetSearchServices(params: {
+export function useGetSearchServices(params?: {
+  categoryIds?: number[] | string;
   keyword?: string;
+  minPrice?: number;
+  maxPrice?: number;
   location?: string;
+  tags?: string[] | string;
+  verifiedOnly?: boolean;
+  minRating?: number;
 }) {
+  // Build params object with only defined values and serialize arrays to comma-separated strings
+  const serializedParams: Record<
+    string,
+    string | number | boolean | undefined
+  > = {};
+
+  if (params?.categoryIds !== undefined && params.categoryIds !== null) {
+    serializedParams.categoryIds = Array.isArray(params.categoryIds)
+      ? params.categoryIds.join(",")
+      : params.categoryIds;
+  }
+
+  if (params?.tags !== undefined && params.tags !== null) {
+    serializedParams.tags = Array.isArray(params.tags)
+      ? params.tags.join(",")
+      : params.tags;
+  }
+
+  if (params?.keyword !== undefined) serializedParams.keyword = params.keyword;
+  if (params?.minPrice !== undefined)
+    serializedParams.minPrice = params.minPrice;
+  if (params?.maxPrice !== undefined)
+    serializedParams.maxPrice = params.maxPrice;
+  if (params?.location !== undefined)
+    serializedParams.location = params.location;
+  if (params?.verifiedOnly !== undefined)
+    serializedParams.verifiedOnly = params.verifiedOnly;
+  if (params?.minRating !== undefined)
+    serializedParams.minRating = params.minRating;
+
+  // Use a stringified params object in the queryKey so the key is a valid primitive and
+  // caching by react-query works correctly for different filter sets.
+  const queryKey = [
+    QUERY_KEYS.SEARCH_SERVICES,
+    JSON.stringify(serializedParams),
+  ];
+
   return useRead<Response<Service[]>>({
     url: "/public/search/services",
-    queryKey: [QUERY_KEYS.SEARCH_SERVICES],
+    queryKey,
+    params: serializedParams,
+  });
+}
+
+export function useFilterAgents(params?: {
+  minRating?: number;
+  maxPrice?: number;
+  status?: string;
+}) {
+  return useRead<Response<AgentProfile[]>>({
+    url: "/public/search/filter",
+    queryKey: [QUERY_KEYS.FILTER_AGENTS],
     params,
   });
 }
@@ -114,18 +169,6 @@ export function useGetTopRatedAgents(limit: number = 10) {
     url: "/public/top/agents",
     queryKey: [QUERY_KEYS.TOP_AGENTS, limit],
     params: { limit },
-  });
-}
-
-export function useFilterAgents(params?: {
-  minRating?: number;
-  maxPrice?: number;
-  status?: string;
-}) {
-  return useRead<Response<AgentProfile[]>>({
-    url: "/public/search/filter",
-    queryKey: [QUERY_KEYS.FILTER_AGENTS],
-    params,
   });
 }
 

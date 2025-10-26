@@ -23,9 +23,9 @@ export function HeroSection({
   secondaryAction,
 }: HeroSectionProps) {
   return (
-    <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white overflow-hidden">
+    <section className="relative bg-linear-to-br from-blue-600 via-blue-700 to-indigo-800 text-white overflow-hidden">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px]" />
+      <div className="absolute inset-0 bg-grid-white/[0.02] bg-size-[60px_60px]" />
 
       {/* Animated Background Elements */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" />
@@ -55,7 +55,7 @@ export function HeroSection({
             {secondaryAction && (
               <Button
                 size="lg"
-                variant="outline"
+                variant="default"
                 asChild
                 className="border-2 border-white text-white hover:bg-white/10 font-semibold px-8 py-3 rounded-xl transition-all duration-300 hover:scale-105"
               >
