@@ -21,7 +21,6 @@ import { usePathname } from "next/navigation";
 import AuthGuard from "@/components/common/AuthGuard";
 
 const agentMenuItems = [
-  { title: "Dashboard", href: "/agent/dashboard", icon: LayoutDashboard },
   { title: "My Services", href: "/agent/services", icon: Briefcase },
   { title: "Reviews", href: "/agent/reviews", icon: Star },
   { title: "Profile Settings", href: "/agent/profile", icon: User },

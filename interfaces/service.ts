@@ -80,3 +80,17 @@ export interface ServiceSearchFilters {
   maxPrice?: number;
   rating?: number;
 }
+
+// src/types/verification.ts
+export enum DocumentType {
+  BUSINESS_LICENSE = 'business_license',
+  ID_CARD = 'id_card',
+  CERTIFICATE = 'certificate',
+  OTHER = 'other',
+}
+
+export interface VerificationDocumentData {
+  document_type: DocumentType;
+  document_url: string;
+  admin_notes?: string;
+}

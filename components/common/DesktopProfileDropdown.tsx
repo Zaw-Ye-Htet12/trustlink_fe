@@ -33,7 +33,6 @@ const roleBasedNavigation = {
     { title: "Favorites", href: "/customer/favorites", icon: Heart },
   ],
   agent: [
-    { title: "Dashboard", href: "/agent/dashboard", icon: LayoutDashboard },
     { title: "My Services", href: "/agent/services", icon: Briefcase },
     { title: "Reviews", href: "/agent/reviews", icon: Star },
   ],
