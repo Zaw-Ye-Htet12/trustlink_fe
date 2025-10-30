@@ -23,6 +23,9 @@ import { AgentCard } from "@/components/agent/AgentCard";
 import { ServiceCard } from "@/components/service/ServiceCard";
 import { ReviewSection } from "@/components/common/ReviewSection";
 import { ServiceDetailSkeleton } from "@/components/common/skeletons/ServiceDetailSkeleton";
+import { useSavedStore } from "@/store/useSavedStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { toast } from "sonner";
 
 interface ServiceDetailPageProps {
   params: {
@@ -37,6 +40,35 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
   const { serviceDetail, isFetchingServiceDetail } =
     useServiceDetail(serviceId);
   const { relatedServices } = useRelatedServices(serviceId);
+  const { toggleSaveService, isServiceSaved } = useSavedStore();
+  const saved = isServiceSaved(serviceId);
+  const { isAuthenticated } = useAuthStore();
+
+  const handleSaveService = () => {
+    if (!isAuthenticated) {
+      toast.warning("Please log in first to save agents.");
+      return;
+    }
+    toggleSaveService(serviceId);
+  };
+
+  const handleContactAgent = () => {
+    const phone = serviceDetail?.agent.user.phone_no;
+
+    if (!phone) {
+      toast.warning(
+        "This agent doesn't provide a phone number. Please contact via email."
+      );
+      return;
+    }
+
+    // ✅ Remove any non-digit characters and prepend country code if needed
+    const cleanedPhone = phone.replace(/[^\d]/g, "");
+    const whatsappUrl = `https://wa.me/${cleanedPhone}`;
+
+    // ✅ Open WhatsApp in new tab
+    window.open(whatsappUrl, "_blank");
+  };
 
   if (isFetchingServiceDetail) {
     return <ServiceDetailSkeleton />;
@@ -206,17 +238,61 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
 
                   <div className="flex gap-2">
                     <Button
-                      variant="outline"
+                      onClick={handleSaveService}
+                      variant={saved ? "default" : "outline"}
+                      className={`flex-1 ${
+                        saved
+                          ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
+                          : "border-gray-300 hover:border-gray-400 text-gray-700"
+                      } transition-all duration-200`}
                       size="sm"
-                      className="flex items-center gap-2"
                     >
-                      <Heart className="w-4 h-4" />
-                      Save
+                      <Heart
+                        className={`w-4 h-4 mr-2 ${
+                          saved ? "fill-current" : ""
+                        }`}
+                      />
+                      {saved ? "Saved" : "Save"}
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       className="flex items-center gap-2"
+                      onClick={async () => {
+                        try {
+                          const shareUrl = window.location.href;
+                          const shareData = {
+                            title: serviceDetail.title,
+                            text: `Check out this service: ${serviceDetail.title}`,
+                            url: shareUrl,
+                          };
+
+                          if (navigator.share) {
+                            // ✅ Use native mobile/web share sheet if available
+                            await navigator.share(shareData);
+                            toast.success("Service shared successfully!");
+                          } else {
+                            // ✅ Fallback to clipboard copy
+                            await navigator.clipboard.writeText(shareUrl);
+                            toast.success("Service link copied to clipboard!");
+                          }
+                        } catch (err) {
+                          // Handle user cancelling or focus issue gracefully
+                          if (
+                            err instanceof DOMException &&
+                            err.name === "NotAllowedError"
+                          ) {
+                            toast.error(
+                              "Unable to access clipboard — please click the page first and try again."
+                            );
+                          } else {
+                            console.error("Share failed:", err);
+                            toast.error(
+                              "Failed to share the service. Please try again."
+                            );
+                          }
+                        }
+                      }}
                     >
                       <Share2 className="w-4 h-4" />
                       Share
@@ -228,12 +304,10 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
                   <Button
                     className="flex-1 bg-blue-600 hover:bg-blue-700"
                     size="lg"
+                    onClick={handleContactAgent}
                   >
                     <MessageCircle className="w-4 h-4 mr-2" />
                     Contact Agent
-                  </Button>
-                  <Button variant="outline" className="flex-1" size="lg">
-                    Book Service
                   </Button>
                 </div>
               </div>

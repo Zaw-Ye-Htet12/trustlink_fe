@@ -102,18 +102,7 @@ export function ReviewCard({ review, onReply }: ReviewCardProps) {
             </div>
 
             {/* Review Actions */}
-            <div className="flex items-center justify-between pt-4 border-t">
-              <div className="flex items-center gap-4 text-sm text-gray-600">
-                <Button variant="ghost" size="sm" className="h-8 gap-1">
-                  <ThumbsUp className="h-4 w-4" />
-                  Helpful
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 gap-1">
-                  <MessageSquare className="h-4 w-4" />
-                  Reply
-                </Button>
-              </div>
-
+            <div className="flex items-center justify-end pt-4 border-t">
               {/* Service Info */}
               {review.service && (
                 <div className="text-right">

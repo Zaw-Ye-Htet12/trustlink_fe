@@ -16,11 +16,15 @@ import {
   MessageCircle,
   Phone,
   Mail,
-  Share2,
+  Heart,
+  Share2Icon,
 } from "lucide-react";
 import { ServiceCard } from "@/components/service/ServiceCard";
 import { AgentDetailSkeleton } from "@/components/common/skeletons/AgentDetailSkeleton";
 import { ReviewSection } from "@/components/common/ReviewSection";
+import { useSavedStore } from "@/store/useSavedStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { toast } from "sonner";
 
 interface AgentDetailPageProps {
   params: {
@@ -34,6 +38,9 @@ export default function AgentDetailPage({ params }: AgentDetailPageProps) {
   const resolvedParams = use(params as unknown as Promise<{ id: string }>);
   const agentId = Number(resolvedParams.id);
   const { agentDetail, isFetchingAgentDetail } = useAgentDetail(agentId);
+  const { toggleSaveAgent, isAgentSaved } = useSavedStore();
+  const { isAuthenticated } = useAuthStore();
+  const saved = isAgentSaved(agentId);
 
   if (isFetchingAgentDetail) {
     return <AgentDetailSkeleton />;
@@ -53,6 +60,76 @@ export default function AgentDetailPage({ params }: AgentDetailPageProps) {
       </div>
     );
   }
+
+  const handleSaveAgent = (id: number) => {
+    if (!isAuthenticated) {
+      toast.warning("Please log in first to save agents.");
+      return;
+    }
+    toggleSaveAgent(id);
+  };
+
+  const handleContactAgent = () => {
+    const phone = agentDetail.user.phone_no;
+
+    if (!phone) {
+      toast.warning(
+        "This agent doesn't provide a phone number. Please contact via email."
+      );
+      return;
+    }
+
+    // ✅ Remove any non-digit characters and prepend country code if needed
+    const cleanedPhone = phone.replace(/[^\d]/g, "");
+    const whatsappUrl = `https://wa.me/${cleanedPhone}`;
+
+    // ✅ Open WhatsApp in new tab
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const handleShareAgent = async () => {
+    // Get the current page URL
+    const currentUrl = window.location.href;
+
+    try {
+      // Try using the Web Share API first (works on mobile and some browsers)
+      if (navigator.share) {
+        await navigator.share({
+          title: `${agentDetail.user.username} - Agent Profile`,
+          text: `Check out ${agentDetail.user.username}'s profile${
+            agentDetail.bio ? `: ${agentDetail.bio.slice(0, 100)}...` : ""
+          }`,
+          url: currentUrl,
+        });
+        toast.success("Shared successfully!");
+      } else {
+        // Fallback to clipboard copy
+        await navigator.clipboard.writeText(currentUrl);
+        toast.success("Link copied to clipboard!", {
+          description: "You can now share this agent's profile with others.",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      // If Web Share API is cancelled or clipboard fails
+      if (error instanceof Error && error.name !== "AbortError") {
+        // Try fallback method for older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = currentUrl;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand("copy");
+          toast.success("Link copied to clipboard!");
+        } catch (err) {
+          toast.error("Failed to copy link. Please try again.");
+        }
+        document.body.removeChild(textArea);
+      }
+    }
+  };
 
   const averageRating = agentDetail.reviews?.length
     ? agentDetail.reviews.reduce((sum, review) => sum + review.rating, 0) /
@@ -103,13 +180,29 @@ export default function AgentDetailPage({ params }: AgentDetailPageProps) {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
+                  <Button
+                    onClick={() => handleSaveAgent(agentId)}
+                    variant={saved ? "default" : "outline"}
+                    className={`flex-1 ${
+                      saved
+                        ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
+                        : "border-gray-300 hover:border-gray-400 text-gray-700"
+                    } transition-all duration-200`}
+                    size="sm"
+                  >
+                    <Heart
+                      className={`w-4 h-4 mr-2 ${saved ? "fill-current" : ""}`}
+                    />
+                    {saved ? "Saved" : "Save"}
                   </Button>
-                  <Button className="bg-blue-600 hover:bg-blue-700" size="sm">
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Contact
+                  <Button
+                    onClick={handleShareAgent}
+                    variant="outline"
+                    className="border-gray-300 hover:border-blue-400 hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all duration-200"
+                    size="sm"
+                  >
+                    <Share2Icon className="w-4 h-4 mr-2" />
+                    Share
                   </Button>
                 </div>
               </div>
@@ -175,10 +268,12 @@ export default function AgentDetailPage({ params }: AgentDetailPageProps) {
                   </Badge>
                 </div>
                 <div className="grid md:grid-cols-2 gap-6">
-                  {agentDetail.services.map((service) => (
-                    console.log("Rendering service:", service),
-                    <ServiceCard key={service.id} service={service} />
-                  ))}
+                  {agentDetail.services.map(
+                    (service) => (
+                      console.log("Rendering service:", service),
+                      (<ServiceCard key={service.id} service={service} />)
+                    )
+                  )}
                 </div>
               </div>
             )}
@@ -214,9 +309,12 @@ export default function AgentDetailPage({ params }: AgentDetailPageProps) {
                   </span>
                 </div>
 
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                <Button
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  onClick={handleContactAgent}
+                >
                   <MessageCircle className="w-4 h-4 mr-2" />
-                  Send Message
+                  Contact
                 </Button>
               </div>
             </div>

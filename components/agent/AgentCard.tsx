@@ -26,6 +26,8 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import { useSavedStore } from "@/store/useSavedStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { toast } from "sonner";
 
 interface AgentCardProps {
   agent: AgentProfile;
@@ -42,6 +44,15 @@ export function AgentCard({ agent, className }: AgentCardProps) {
     : 0;
   const { isAgentSaved, toggleSaveAgent } = useSavedStore();
   const saved = isAgentSaved(agent.id);
+  const { isAuthenticated } = useAuthStore();
+
+  const handleSaveAgent = (id: number) => {
+    if (!isAuthenticated) {
+      toast.warning("Please log in first to save agents.");
+      return;
+    }
+    toggleSaveAgent(id);
+  };
 
   // Calculate response rate (mock data for now)
   const responseRate = 95;
@@ -300,7 +311,7 @@ export function AgentCard({ agent, className }: AgentCardProps) {
             </Link>
           </Button>
           <Button
-            onClick={() => toggleSaveAgent(agent.id)}
+            onClick={() => handleSaveAgent(agent.id)}
             variant={saved ? "default" : "outline"}
             className={`flex-1 ${
               saved
@@ -311,13 +322,6 @@ export function AgentCard({ agent, className }: AgentCardProps) {
           >
             <Heart className={`w-4 h-4 mr-2 ${saved ? "fill-current" : ""}`} />
             {saved ? "Saved" : "Save"}
-          </Button>
-          <Button
-            className="flex-1 bg-gray-900 hover:bg-gray-800 text-white shadow-sm hover:shadow transition-all duration-200 border-0"
-            size="sm"
-          >
-            <MessageCircle className="w-4 h-4 mr-2" />
-            Contact
           </Button>
         </div>
 

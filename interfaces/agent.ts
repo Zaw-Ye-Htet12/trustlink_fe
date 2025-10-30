@@ -15,7 +15,6 @@ export enum DocumentType {
   OTHER = "other",
 }
 
-
 export interface AgentProfile {
   id: number;
   user: User;
@@ -24,6 +23,7 @@ export interface AgentProfile {
   location?: string;
   service_area?: string;
   verification_status: VerificationStatus;
+  verificationDocuments?: VerificationDocument[];
   total_reviews: number;
   follower_count: number;
   created_at: string;

@@ -175,15 +175,6 @@ export default function AgentReviewsPage() {
                     <option value="quarter">This Quarter</option>
                   </select>
 
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Filter className="h-4 w-4" />
-                    More Filters
-                  </Button>
-
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="h-4 w-4" />
-                    Export
-                  </Button>
                 </div>
               </div>
             </CardContent>

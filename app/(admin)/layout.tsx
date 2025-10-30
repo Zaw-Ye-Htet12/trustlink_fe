@@ -32,7 +32,6 @@ const adminMenuItems = [
     icon: FileText,
   },
   { title: "Categories", href: "/admin/categories", icon: FolderOpen },
-  { title: "Tags", href: "/admin/tags", icon: Tags },
 ];
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {

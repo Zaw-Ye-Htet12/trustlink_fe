@@ -39,9 +39,12 @@ const roleBasedNavigation = {
   admin: [
     { title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { title: "Users", href: "/admin/users", icon: Users },
-    { title: "Services", href: "/admin/services", icon: Briefcase },
-    { title: "Bookings", href: "/admin/bookings", icon: ClipboardList },
-    { title: "Reviews", href: "/admin/reviews", icon: Star },
+    { title: "Agents", href: "/admin/agents", icon: Briefcase },
+    {
+      title: "Documents",
+      href: "/admin/verification-docs",
+      icon: ClipboardList,
+    },
   ],
 };
 

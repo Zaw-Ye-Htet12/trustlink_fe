@@ -1,340 +1,190 @@
-// app/(admin)/admin/dashboard/page.tsx
+// app/admin/dashboard/page.tsx
 "use client";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Users,
-  UserCheck,
-  FileText,
-  TrendingUp,
-  AlertTriangle,
-  Shield,
-  Calendar,
-  FolderOpen,
-  Tags,
-} from "lucide-react";
-import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, UserCheck, UserX, FileText, AlertCircle } from "lucide-react";
+import { useAdminDashboard } from "@/hooks/admin/useAdminDashboard";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Mock data based on API endpoints
-const dashboardStats = [
-  {
-    label: "Total Users",
-    value: "1,247",
-    icon: Users,
-    color: "text-blue-600",
-    change: "+12% this month",
-    description: "Registered users",
-  },
-  {
-    label: "Total Agents",
-    value: "89",
-    icon: UserCheck,
-    color: "text-green-600",
-    change: "+5 new agents",
-    description: "Verified professionals",
-  },
-  {
-    label: "Pending Verifications",
-    value: "23",
-    icon: FileText,
-    color: "text-amber-600",
-    change: "Requires attention",
-    description: "Documents to review",
-  },
-  {
-    label: "Active Categories",
-    value: "15",
-    icon: Shield,
-    color: "text-purple-600",
-    change: "All categories active",
-    description: "Service categories",
-  },
-];
+export default function AdminDashboardPage() {
+  const { dashboard, isLoading, error } = useAdminDashboard();
 
-const recentActivities = [
-  {
-    id: 1,
-    type: "agent_verification",
-    title: "New agent registration",
-    description: "Sarah Johnson submitted verification documents",
-    time: "2 hours ago",
-    priority: "high",
-  },
-  {
-    id: 2,
-    type: "user_registration",
-    title: "New customer joined",
-    description: "Mike Chen registered as customer",
-    time: "4 hours ago",
-    priority: "medium",
-  },
-  {
-    id: 3,
-    type: "verification_approved",
-    title: "Agent verified",
-    description: "David Brown's documents approved",
-    time: "1 day ago",
-    priority: "low",
-  },
-];
-
-const quickStats = {
-  users: {
-    total: 1247,
-    active: 1189,
-    inactive: 58,
-  },
-  agents: {
-    verified: 67,
-    pending: 23,
-    rejected: 12,
-  },
-  verifications: {
-    approved: 145,
-    rejected: 28,
-    pending: 23,
-  },
-};
-
-export default function AdminDashboard() {
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600">Platform overview and quick insights</p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline">
-            <Calendar className="h-4 w-4 mr-2" />
-            Generate Report
-          </Button>
-        </div>
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50/30 py-8 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Failed to Load Dashboard
+            </h3>
+            <p className="text-gray-600">
+              There was an error loading the dashboard data.
+            </p>
+          </CardContent>
+        </Card>
       </div>
+    );
+  }
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {dashboardStats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card
-              key={stat.label}
-              className="hover:shadow-md transition-shadow"
-            >
+  const stats = [
+    {
+      title: "Total Users",
+      value: dashboard?.totalUsers || 0,
+      icon: Users,
+      color: "bg-blue-50 text-blue-600",
+    },
+    {
+      title: "Total Agents",
+      value: dashboard?.totalAgents || 0,
+      icon: UserCheck,
+      color: "bg-green-50 text-green-600",
+    },
+    {
+      title: "Total Customers",
+      value: dashboard?.totalCustomers || 0,
+      icon: Users,
+      color: "bg-purple-50 text-purple-600",
+    },
+    {
+      title: "Pending Verifications",
+      value: dashboard?.totalPendingVerifications || 0,
+      icon: FileText,
+      color: "bg-amber-50 text-amber-600",
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50/30 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Admin Dashboard
+          </h1>
+          <p className="text-lg text-gray-600">
+            Overview of platform statistics and activities
+          </p>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {stats.map((stat, index) => (
+            <Card key={index}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">
-                      {stat.label}
+                      {stat.title}
                     </p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">
-                      {stat.value}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {stat.description}
-                    </p>
+                    {isLoading ? (
+                      <Skeleton className="h-8 w-20 mt-1" />
+                    ) : (
+                      <p className="text-2xl font-bold text-gray-900 mt-1">
+                        {stat.value}
+                      </p>
+                    )}
                   </div>
-                  <div className={`p-3 rounded-lg bg-gray-50 ${stat.color}`}>
-                    <Icon className="h-6 w-6" />
+                  <div className={`p-3 rounded-lg ${stat.color}`}>
+                    <stat.icon className="h-6 w-6" />
                   </div>
-                </div>
-                <div
-                  className={`flex items-center gap-1 mt-3 ${
-                    stat.label === "Pending Verifications"
-                      ? "text-amber-600"
-                      : "text-green-600"
-                  }`}
-                >
-                  <TrendingUp className="h-3 w-3" />
-                  <span className="text-xs">{stat.change}</span>
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
+          ))}
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activities */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" />
-              Recent Activities
-            </CardTitle>
-            <CardDescription>
-              Latest platform activities requiring attention
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="space-y-4 p-1">
-              {recentActivities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-start gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div
-                    className={`w-2 h-2 rounded-full mt-2 ${
-                      activity.priority === "high"
-                        ? "bg-red-500"
-                        : activity.priority === "medium"
-                        ? "bg-amber-500"
-                        : "bg-green-500"
-                    }`}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium text-gray-900">
-                        {activity.title}
-                      </p>
-                      <Badge
-                        variant={
-                          activity.priority === "high"
-                            ? "destructive"
-                            : activity.priority === "medium"
-                            ? "default"
-                            : "secondary"
-                        }
-                        className="text-xs"
-                      >
-                        {activity.priority}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-2">
-                      {activity.description}
-                    </p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="border-t p-3">
-              <Button variant="ghost" size="sm" className="w-full">
-                View All Activities
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Stats */}
-        <div className="space-y-6">
-          {/* Users Overview */}
+        {/* Recent Activity & Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Quick Actions */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Users Overview
-              </CardTitle>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {quickStats.users.total}
+              <div className="grid grid-cols-2 gap-4">
+                <a
+                  href="/admin/agents"
+                  className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <UserCheck className="h-6 w-6 text-green-600 mb-2" />
+                  <h3 className="font-semibold">Manage Agents</h3>
+                  <p className="text-sm text-gray-600">
+                    Review and verify agent applications
                   </p>
-                  <p className="text-xs text-gray-600">Total</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-green-600">
-                    {quickStats.users.active}
+                </a>
+                <a
+                  href="/admin/users"
+                  className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <Users className="h-6 w-6 text-blue-600 mb-2" />
+                  <h3 className="font-semibold">Manage Users</h3>
+                  <p className="text-sm text-gray-600">
+                    View and manage all users
                   </p>
-                  <p className="text-xs text-gray-600">Active</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-red-600">
-                    {quickStats.users.inactive}
+                </a>
+                <a
+                  href="/admin/categories"
+                  className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <FileText className="h-6 w-6 text-purple-600 mb-2" />
+                  <h3 className="font-semibold">Categories</h3>
+                  <p className="text-sm text-gray-600">
+                    Manage service categories
                   </p>
-                  <p className="text-xs text-gray-600">Inactive</p>
-                </div>
+                </a>
+                <a
+                  href="/admin/verification-docs"
+                  className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <FileText className="h-6 w-6 text-amber-600 mb-2" />
+                  <h3 className="font-semibold">Verifications</h3>
+                  <p className="text-sm text-gray-600">
+                    Review verification documents
+                  </p>
+                </a>
               </div>
-              <Button variant="outline" size="sm" className="w-full" asChild>
-                <Link href="/admin/users">Manage Users</Link>
-              </Button>
             </CardContent>
           </Card>
 
-          {/* Agents Overview */}
+          {/* Recent Activity */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <UserCheck className="h-5 w-5" />
-                Agents Overview
-              </CardTitle>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-green-600">
-                    {quickStats.agents.verified}
-                  </p>
-                  <p className="text-xs text-gray-600">Verified</p>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium">New agent registration</p>
+                    <p className="text-sm text-gray-600">2 hours ago</p>
+                  </div>
+                  <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded-full">
+                    Pending
+                  </span>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-amber-600">
-                    {quickStats.agents.pending}
-                  </p>
-                  <p className="text-xs text-gray-600">Pending</p>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium">User account deactivated</p>
+                    <p className="text-sm text-gray-600">5 hours ago</p>
+                  </div>
+                  <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
+                    Action
+                  </span>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-red-600">
-                    {quickStats.agents.rejected}
-                  </p>
-                  <p className="text-xs text-gray-600">Rejected</p>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium">New category added</p>
+                    <p className="text-sm text-gray-600">1 day ago</p>
+                  </div>
+                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                    Completed
+                  </span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="w-full" asChild>
-                <Link href="/admin/agents">Manage Agents</Link>
-              </Button>
             </CardContent>
           </Card>
         </div>
       </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>
-            Frequently used administrative tasks
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-16 flex-col" asChild>
-              <Link href="/admin/verification-docs">
-                <FileText className="h-5 w-5 mb-1" />
-                <span className="text-sm">Review Docs</span>
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-16 flex-col" asChild>
-              <Link href="/admin/users">
-                <Users className="h-5 w-5 mb-1" />
-                <span className="text-sm">Manage Users</span>
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-16 flex-col" asChild>
-              <Link href="/admin/categories">
-                <FolderOpen className="h-5 w-5 mb-1" />
-                <span className="text-sm">Categories</span>
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-16 flex-col" asChild>
-              <Link href="/admin/tags">
-                <Tags className="h-5 w-5 mb-1" />
-                <span className="text-sm">Manage Tags</span>
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

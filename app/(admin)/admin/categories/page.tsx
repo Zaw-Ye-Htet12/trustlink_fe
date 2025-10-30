@@ -1,5 +1,6 @@
-// app/(admin)/admin/categories/page.tsx
+// app/admin/categories/page.tsx
 "use client";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -8,335 +9,282 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Search,
   Plus,
   Edit,
   Trash2,
-  FolderOpen,
-  ToggleLeft,
-  ToggleRight,
+  Tag,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
-import { useState } from "react";
+import {
+  useAdminCategories,
+  useCreateCategory,
+  useUpdateCategory,
+  useDeleteCategory,
+} from "@/hooks/admin/useAdminCategories";
+import { Category } from "@/interfaces";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CategoryFormModal } from "@/components/admin/CategoryFormModal";
 
-// Mock data based on API endpoints
-const categoriesData = [
-  {
-    id: 1,
-    name: "Home Cleaning",
-    slug: "home-cleaning",
-    description: "Professional home cleaning and maintenance services",
-    isActive: true,
-    servicesCount: 45,
-    createdAt: "2024-01-01",
-  },
-  {
-    id: 2,
-    name: "Plumbing",
-    slug: "plumbing",
-    description: "Plumbing repair, installation, and maintenance services",
-    isActive: true,
-    servicesCount: 28,
-    createdAt: "2024-01-02",
-  },
-  {
-    id: 3,
-    name: "Electrical",
-    slug: "electrical",
-    description: "Electrical wiring, repair, and installation services",
-    isActive: false,
-    servicesCount: 32,
-    createdAt: "2024-01-03",
-  },
-  {
-    id: 4,
-    name: "Moving Services",
-    slug: "moving-services",
-    description: "Professional moving and relocation assistance",
-    isActive: true,
-    servicesCount: 18,
-    createdAt: "2024-01-05",
-  },
-];
-
-export default function CategoriesManagementPage() {
+export default function AdminCategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-  const [newCategory, setNewCategory] = useState({
-    name: "",
-    slug: "",
-    description: "",
-    isActive: true,
-  });
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const filteredCategories = categoriesData.filter(
+  const { categories, isLoading, error } = useAdminCategories();
+  const { createCategory, isCreating } = useCreateCategory();
+  const { updateCategory, isUpdating } = useUpdateCategory(
+    editingCategory?.id || 0
+  );
+  const { deleteCategory, isDeleting } = useDeleteCategory();
+
+  const filteredCategories = categories.filter(
     (category) =>
       category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchTerm.toLowerCase())
+      category.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleCreateCategory = () => {
-    // In real implementation, this would call the API
-    console.log("Creating category:", newCategory);
-    setIsCreating(false);
-    setNewCategory({ name: "", slug: "", description: "", isActive: true });
+  const handleCreateCategory = (data: {
+    name: string;
+    description?: string;
+    slug: string;
+    is_active?: boolean;
+  }) => {
+    createCategory(data, {
+      onSuccess: () => {
+        setShowCreateModal(false);
+      },
+    });
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Categories Management
-          </h1>
-          <p className="text-gray-600">
-            Manage service categories and their properties
-          </p>
-        </div>
-        <Button onClick={() => setIsCreating(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Category
-        </Button>
-      </div>
+  const handleUpdateCategory = (data: {
+    name: string;
+    description?: string;
+    slug: string;
+    is_active?: boolean;
+  }) => {
+    if (!editingCategory) return;
 
-      {/* Create Category Form */}
-      {isCreating && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Create New Category</CardTitle>
-            <CardDescription>
-              Add a new service category to the platform
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Category Name
-                </label>
-                <Input
-                  placeholder="e.g., Home Cleaning"
-                  value={newCategory.name}
-                  onChange={(e) =>
-                    setNewCategory({ ...newCategory, name: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Slug
-                </label>
-                <Input
-                  placeholder="e.g., home-cleaning"
-                  value={newCategory.slug}
-                  onChange={(e) =>
-                    setNewCategory({ ...newCategory, slug: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Description
-              </label>
-              <Textarea
-                placeholder="Describe this category..."
-                value={newCategory.description}
-                onChange={(e) =>
-                  setNewCategory({
-                    ...newCategory,
-                    description: e.target.value,
-                  })
-                }
-                rows={3}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">
-                Status
-              </label>
-              <button
-                onClick={() =>
-                  setNewCategory({
-                    ...newCategory,
-                    isActive: !newCategory.isActive,
-                  })
-                }
-                className="flex items-center gap-2"
-              >
-                {newCategory.isActive ? (
-                  <ToggleRight className="h-6 w-6 text-green-600" />
-                ) : (
-                  <ToggleLeft className="h-6 w-6 text-gray-400" />
-                )}
-                <span className="text-sm">
-                  {newCategory.isActive ? "Active" : "Inactive"}
-                </span>
-              </button>
-            </div>
-            <div className="flex gap-3 pt-4 border-t">
-              <Button variant="outline" onClick={() => setIsCreating(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleCreateCategory}>Create Category</Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+    updateCategory(data, {
+      onSuccess: () => {
+        setEditingCategory(null);
+      },
+    });
+  };
 
-      {/* Search */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search categories..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
+  const handleDeleteCategory = (categoryId: number) => {
+    if (
+      confirm(
+        "Are you sure you want to delete this category? This action cannot be undone."
+      )
+    ) {
+      deleteCategory(categoryId);
+    }
+  };
 
-      {/* Categories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCategories.map((category) => (
-          <Card key={category.id} className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
-                    <FolderOpen className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      {category.name}
-                    </h3>
-                    <p className="text-sm text-gray-600">{category.slug}</p>
-                  </div>
-                </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Edit className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-red-600"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-
-              <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                {category.description}
-              </p>
-
-              <div className="space-y-3 mb-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Services</span>
-                  <Badge variant="secondary">
-                    {category.servicesCount} services
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Status</span>
-                  <Badge variant={category.isActive ? "default" : "secondary"}>
-                    {category.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Created</span>
-                  <span className="text-gray-900">{category.createdAt}</span>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Button size="sm" className="flex-1" variant="outline">
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant={category.isActive ? "outline" : "default"}
-                >
-                  {category.isActive ? "Deactivate" : "Activate"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Empty State */}
-      {filteredCategories.length === 0 && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <FolderOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50/30 py-8 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <Tag className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No categories found
+              Failed to Load Categories
             </h3>
             <p className="text-gray-600">
-              {searchTerm
-                ? "Try adjusting your search terms"
-                : "Get started by creating your first category"}
+              There was an error loading categories.
             </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <FolderOpen className="h-6 w-6 text-blue-600" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">
-              {categoriesData.length}
-            </p>
-            <p className="text-sm text-gray-600">Total Categories</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <ToggleRight className="h-6 w-6 text-green-600" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">
-              {categoriesData.filter((c) => c.isActive).length}
-            </p>
-            <p className="text-sm text-gray-600">Active Categories</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <ToggleLeft className="h-6 w-6 text-gray-600" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">
-              {categoriesData.filter((c) => !c.isActive).length}
-            </p>
-            <p className="text-sm text-gray-600">Inactive Categories</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <FolderOpen className="h-6 w-6 text-purple-600" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">
-              {categoriesData.reduce((sum, cat) => sum + cat.servicesCount, 0)}
-            </p>
-            <p className="text-sm text-gray-600">Total Services</p>
           </CardContent>
         </Card>
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50/30 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Categories Management
+            </h1>
+            <p className="text-lg text-gray-600">
+              Manage service categories and their visibility
+            </p>
+          </div>
+
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            className="mt-4 lg:mt-0"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Category
+          </Button>
+        </div>
+
+        {/* Search and Stats */}
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+              <div className="relative w-full lg:w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search categories..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              <div className="flex items-center gap-4 text-sm text-gray-600">
+                <span>
+                  Total:{" "}
+                  <strong className="text-gray-900">{categories.length}</strong>
+                </span>
+                <span>
+                  Active:{" "}
+                  <strong className="text-green-600">
+                    {categories.filter((c) => c.is_active).length}
+                  </strong>
+                </span>
+                <span>
+                  Inactive:{" "}
+                  <strong className="text-red-600">
+                    {categories.filter((c) => !c.is_active).length}
+                  </strong>
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Categories Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i}>
+                <CardContent className="p-6">
+                  <div className="space-y-3">
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                    <div className="flex gap-2 pt-2">
+                      <Skeleton className="h-8 w-20" />
+                      <Skeleton className="h-8 w-20" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : filteredCategories.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Tag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {searchTerm ? "No Categories Found" : "No Categories"}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {searchTerm
+                  ? "No categories match your search criteria."
+                  : "Get started by creating your first category."}
+              </p>
+              {!searchTerm && (
+                <Button onClick={() => setShowCreateModal(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Category
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCategories.map((category) => (
+              <Card key={category.id}>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="font-semibold text-lg">{category.name}</h3>
+                    <Badge
+                      variant={category.is_active ? "default" : "secondary"}
+                      className={
+                        category.is_active
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }
+                    >
+                      {category.is_active ? (
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                      ) : (
+                        <XCircle className="h-3 w-3 mr-1" />
+                      )}
+                      {category.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+
+                  {category.description && (
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                      {category.description}
+                    </p>
+                  )}
+
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <span>Slug: {category.slug}</span>
+                    <span>
+                      {new Date(category.created_at!).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingCategory(category)}
+                      className="flex-1"
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteCategory(category.id)}
+                      disabled={isDeleting}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Category Form Modals */}
+      <CategoryFormModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreateCategory}
+        isSubmitting={isCreating}
+        title="Create Category"
+        description="Add a new service category to the platform"
+      />
+
+      <CategoryFormModal
+        isOpen={!!editingCategory}
+        onClose={() => setEditingCategory(null)}
+        onSubmit={handleUpdateCategory}
+        isSubmitting={isUpdating}
+        category={editingCategory || undefined}
+        title="Edit Category"
+        description="Update category details"
+      />
     </div>
   );
 }
